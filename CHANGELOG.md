@@ -116,7 +116,7 @@ Starting with v1.0.0, all releases comply with **DALS-001 "Zero-Or-Empty" govern
 
 ## Links
 
-- [Repository](https://github.com/organization/dals)
+- [Repository](https://github.com/Spruked/DALS)
 - [Documentation](docs/README.md)
 - [Governance Protocol](vault/DALS-001-governance-enforcement.md)
 - [Stardate Authority Decision](vault/stardate_authority_decision.json)

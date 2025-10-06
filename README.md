@@ -61,8 +61,8 @@ DALS implements a **canonical stardate system** using Y2K epoch (January 1, 2000
 
 ```bash
 # Clone the repository
-git clone https://github.com/Spruked/ISS_Module.git
-cd ISS_Module
+git clone https://github.com/Spruked/DALS.git
+cd DALS
 
 # Install with pip
 pip install -e .
