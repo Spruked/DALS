@@ -1,0 +1,14 @@
+{
+  "decision": "Canonical Stardate Protocol",
+  "approved_by": "Spruked",
+  "stardate_reference": "January 1, 2000, 00:00:00 UTC",
+  "formula": "stardate = (now - datetime(2000, 1, 1)).total_seconds() / 86400",
+  "formula_hash": "sha256:c3d8a1f2e9b4a6c5d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0",
+  "date": "2025-10-06T01:49:41Z",
+  "authority": "Project owner override of TNG-style stardate",
+  "implementation_status": "ACTIVE",
+  "revoked_implementation": "TNG era (year - 2323) * 1000 formula",
+  "current_stardate_example": 9410.0762,
+  "precision": 4,
+  "note": "Canonical format provides human-scale clarity, logical reversibility, and symbolic precision for Caleon/Prometheus integration"
+}

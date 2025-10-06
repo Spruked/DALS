@@ -1,0 +1,141 @@
+# Docker Compose for DALS Phase 1 Integration - Production Ready
+version: '3.8'
+
+services:
+  # DALS Controller Service (Main ISS Module)
+  dals-controller:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: dals-iss-module:v1.0.0  # Pinned version to prevent drift
+    container_name: dals-controller
+    ports:
+      - "8003:8003"
+    environment:
+      - ENVIRONMENT=production
+      - ISS_SERVICE_NAME=dals-controller
+      - ISS_HOST=0.0.0.0
+      - ISS_PORT=8003
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=json
+      - PROMETHEUS_INTEGRATION_ENABLED=true
+      - API_GATEWAY_URL=http://api-gateway:8000
+      - REDIS_URL=redis://redis:6379
+      - REDIS_ENABLED=true
+      - PHASE_1_TELEMETRY_ENABLED=true  # Enable Phase 1 features
+      - MODULE_STATUS_TRACKING=true     # Enable comprehensive status tracking
+      - WEBSOCKET_ENABLED=true          # Enable real-time streaming
+    volumes:
+      - ./iss_module/data:/app/data
+      - ./vault:/app/vault
+      - ./logs:/app/logs
+    depends_on:
+      - redis
+    networks:
+      - dals-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/api/system/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis for caching and session storage - Pinned version
+  redis:
+    image: redis:7.2-alpine  # Pinned to prevent silent updates
+    container_name: dals-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - dals-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # Prometheus Prime API Gateway (for testing integration)
+  api-gateway:
+    image: prometheus-prime/api-gateway:latest
+    container_name: prometheus-api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - ISS_CONTROLLER_URL=http://iss-controller:8003
+    depends_on:
+      - iss-controller
+    networks:
+      - prometheus-prime
+    restart: unless-stopped
+
+  # Service Discovery (Consul)
+  consul:
+    image: consul:1.15
+    container_name: iss-consul
+    ports:
+      - "8500:8500"
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+    volumes:
+      - consul_data:/consul/data
+    networks:
+      - dals-network
+    restart: unless-stopped
+    command: consul agent -dev -client=0.0.0.0 -ui
+
+  # Monitoring with Prometheus (optional)
+  prometheus:
+    image: prom/prometheus:v2.47.0  # Pinned version
+    container_name: dals-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - dals-network
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+
+  # Log aggregation with Grafana Loki (optional)
+  loki:
+    image: grafana/loki:2.9.0  # Pinned version
+    container_name: dals-loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki-config.yaml:/etc/loki/local-config.yaml
+      - loki_data:/loki
+    networks:
+      - dals-network
+    restart: unless-stopped
+    command: -config.file=/etc/loki/local-config.yaml
+
+networks:
+  dals-network:
+    driver: bridge
+    name: dals-phase1-network
+
+volumes:
+  redis_data:
+    driver: local
+    name: dals-redis-data
+  postgres_data:
+    driver: local
+    name: dals-postgres-data
+  consul_data:
+    driver: local
+    name: dals-consul-data
+  prometheus_data:
+    driver: local
+    name: dals-prometheus-data
+  loki_data:
+    driver: local
+    name: dals-loki-data
