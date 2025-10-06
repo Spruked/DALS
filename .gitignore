@@ -225,7 +225,7 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# ISS Module Specific
+# DALS Specific
 data/
 logs/
 *.db
@@ -235,7 +235,9 @@ captain_logs/
 backup/
 exports/
 temp/
-.iss_data/
+.dals_data/
+vault/temp/
+vault/backup/
 
 # Docker
 .dockerignore
@@ -295,3 +297,17 @@ captain_*.log
 # Local configuration overrides
 config.local.py
 settings.local.py
+
+# GitHub specific
+.github/workflows/secrets.yml
+
+# Development artifacts
+*.patch
+*.diff
+*.orig
+*.rej
+
+# DALS governance records (keep in vault/)
+# vault/*.local
+# vault/temp/
+# vault/backup/
